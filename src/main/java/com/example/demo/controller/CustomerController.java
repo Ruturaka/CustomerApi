@@ -17,9 +17,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.model.Customer;
+import com.example.demo.model.Order;
 import com.example.demo.repository.CustomerRepository;
+import com.example.demo.repository.OrderRepo;
 
-@CrossOrigin(origins = "http://localhost:8081")
+@CrossOrigin(origins = "http://localhost:9999")
 @RestController
 @RequestMapping("/api")
 public class CustomerController {
@@ -27,6 +29,7 @@ public class CustomerController {
     @Autowired
     CustomerRepository customerRepository;
 
+    // For customer
     @GetMapping("/customers")
     public ResponseEntity<List<Customer>> getAlCustomers(@RequestParam(required = false) String name) {
         try {
@@ -56,7 +59,7 @@ public class CustomerController {
     }
 
     @GetMapping("/customers/name")
-    public ResponseEntity<List<Customer>> findByName()
+    public ResponseEntity<List<Customer>> findBYName()
     {
         try {
             List<Customer> customers = customerRepository.findBYName("munot");
@@ -123,4 +126,72 @@ public class CustomerController {
         }
     }
 
+    //for order -
+    @Autowired
+    OrderRepo orderRepo;
+
+    @GetMapping("/order")
+    public ResponseEntity<List<Order>> getWholeMenu(@RequestParam(required = false) String dish) {
+        try {
+            List<Order> order = new ArrayList<Order>();
+
+            if (dish == null)
+                orderRepo.findAll().forEach(order::add);
+            else
+                orderRepo.findByDish(dish).forEach(order::add);
+            if (order.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+
+            return new ResponseEntity<>(order, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/order/{id}")
+    public ResponseEntity<Order> getDishById(@PathVariable("id") long id) {
+        Order menu = orderRepo.findById(id);
+
+        if (menu != null) {
+            return new ResponseEntity<>(menu, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PostMapping("/order")
+    public ResponseEntity<String> createDish(@RequestBody Order order) {
+        try {
+            orderRepo.save(new Order(order.getM_id(), order.getDish(), order.getPrice(), order.getQunt()));
+            return new ResponseEntity<>("Dish was created successfully.", HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/order")
+    public ResponseEntity<String> deleteDishes(){
+        try{
+            int numRows=orderRepo.deleteAll();
+            return new ResponseEntity<>("Deleted "+ numRows+ " Dishe(s) successfully.", HttpStatus.OK);
+        }catch (Exception e)
+        {
+            return new ResponseEntity<>("Cannot delete dishes.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/menu/{id}")
+    public ResponseEntity<String> deleteDish(@PathVariable("id") long id) {
+        try {
+            int result = orderRepo.deleteById(id);
+            if (result == 0) {
+                return new ResponseEntity<>("Cannot find Dish with id=" + id, HttpStatus.OK);
+            }
+            return new ResponseEntity<>("Dish was deleted successfully.", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Cannot delete dish.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
+

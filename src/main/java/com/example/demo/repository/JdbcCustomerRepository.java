@@ -25,7 +25,7 @@ public class JdbcCustomerRepository implements CustomerRepository{
     @Override
     public int update(Customer customer) {
         return jdbcTemplate.update("UPDATE customers SET name=?, email=?, number=? WHERE id=?",
-                new Object[] {customer.getName(), customer.getEmail(), customer.getNumber(), customer.getId() });
+                new Object[] {customer.getName(), customer.getEmail(), customer.getNumber(), customer.getId(), customer.getId() });
     }
 
     @Override
@@ -35,10 +35,26 @@ public class JdbcCustomerRepository implements CustomerRepository{
                     BeanPropertyRowMapper.newInstance(Customer.class), id);
 
             return customer;
-        } catch (IncorrectResultSizeDataAccessException e) {
+        }
+        catch (IncorrectResultSizeDataAccessException e) {
             return null;
         }
     }
+
+    @Override
+    public Customer showByName(String name){
+        try{
+            Customer customer = jdbcTemplate.queryForObject("SELECT * FROM customers WHERE name=?",
+                    BeanPropertyRowMapper.newInstance(Customer.class), name);
+            return customer;
+        }
+        catch (IncorrectResultSizeDataAccessException e)
+        {
+            return null;
+        }
+    }
+
+
 
     @Override
     public int deleteById(Long id) {

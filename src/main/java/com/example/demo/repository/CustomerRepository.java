@@ -11,6 +11,7 @@ public interface CustomerRepository {
     int update(Customer record);
 
     Customer findById(Long id);
+    Customer showByName(String name);
 
     List<Customer> findAll();
 
@@ -19,4 +20,5 @@ public interface CustomerRepository {
     int deleteById(Long id);
 
     int deleteAll();
+
 }
